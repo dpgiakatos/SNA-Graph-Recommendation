@@ -133,6 +133,8 @@ class Graph:
         test = []
         test_size = nx.number_of_edges(self.graph) * split
         for edge in self.graph.edges(data=True):
+            if 'similarity' in edge[2]:
+                continue
             if len(test) > test_size:
                 break
             graph_copy.remove_edge(*edge[:2])
@@ -166,9 +168,9 @@ class Evaluation:
 
 if __name__ == '__main__':
     graph = Graph()
-    graph.init(dataset_directory='data/dataset/', keep_only_good_ratings=True, bipartite=False)
-    graph.export_gexf(directory='data/graph/')
-    # graph.read_gexf('data/graph/graph.gexf')
+    # graph.init(dataset_directory='data/dataset/', keep_only_good_ratings=True, bipartite=False)
+    # graph.export_gexf(directory='data/graph/')
+    graph.read_gexf('data/graph/graph.gexf')
     graph_train, test_edges = graph.split_train_test()
     print(len(test_edges))
     # embedding = Embedding('tf')
