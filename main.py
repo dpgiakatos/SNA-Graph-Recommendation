@@ -62,6 +62,9 @@ class Graph:
         print(f'Total nodes: {nx.number_of_nodes(self.graph)}')
         print(f'Total edges: {nx.number_of_edges(self.graph)}')
 
+    def export(self, directory):
+        nx.write_gexf(self.graph, directory+'graph.gexf')
+
 
 class Heuristic:
     def __init__(self):
@@ -85,3 +88,4 @@ class Evaluation:
 
 if __name__ == '__main__':
     graph = Graph(dataset_directory='data/dataset/')
+    # graph.export(directory='data/graph/')
