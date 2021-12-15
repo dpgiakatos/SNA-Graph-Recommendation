@@ -1,5 +1,6 @@
 import pandas as pd
 import networkx as nx
+import numpy as np
 
 
 class Dataset:
@@ -22,7 +23,6 @@ class Dataset:
 
     def get_tags(self):
         return self.tags
-
 
 
 class Similarity:
@@ -50,16 +50,17 @@ class Graph:
         print(f'Total edges: {nx.number_of_edges(self.graph)}')
 
     def init(self, dataset_directory):
-        self.dataset = Dataset(dataset_directory)
+        dataset = Dataset(dataset_directory)
         print('Graph initialing...')
-        movies = self.dataset.get_movies()
-        tags = self.dataset.get_tags()
-        for index, value in self.dataset.get_ratings().iterrows():
+        movies = dataset.get_movies()
+        tags = dataset.get_tags()
+        for index, value in dataset.get_ratings().iterrows():
             self.graph.add_node(value['userId'], type='user')
             movie = movies.loc[movies['movieId'] == value['movieId']].iloc[0]
             self.graph.add_node(movie['title'], type='movie', genres=movie['genres'].replace('|', ' '))
             tag = tags.loc[(tags['userId'] == value['userId']) & (tags['movieId'] == value['movieId'])]
-            self.graph.add_edge(value['userId'], movie['title'], rating=value['rating'], tag='' if tag.empty else tag.iloc[0]['tag'])
+            tag_value = '' if tag.empty else tag.iloc[0]['tag']
+            self.graph.add_edge(value['userId'], movie['title'], rating=value['rating'], tag=tag_value)
         print('Graph created')
         self.__print_graph_info()
 
@@ -74,6 +75,26 @@ class Graph:
 
     def get_graph(self):
         return self.graph
+
+    def get_adjacency_matrix(self):
+        adj = nx.adjacency_matrix(self.graph)
+        return adj.todense()
+
+    def split_train_test(self, split=0.1):
+        print('Splitting started. This may take time. Please wait...')
+        graph_copy = self.graph.copy()
+        train_graph = self.graph.copy()
+        test = []
+        test_size = nx.number_of_edges(self.graph) * split
+        for edge in self.graph.edges(data=True):
+            if len(test) > test_size:
+                break
+            graph_copy.remove_edge(*edge[:2])
+            if nx.number_connected_components(graph_copy) == 1:
+                train_graph.remove_edge(*edge[:2])
+                test.append(edge)
+            graph_copy.add_edge(edge[0], edge[1], **edge[2])
+        return train_graph, test
 
 
 class Heuristic:
@@ -101,3 +122,4 @@ if __name__ == '__main__':
     # graph.init(dataset_directory='data/dataset/')
     # graph.export_gexf(directory='data/graph/')
     graph.read_gexf('data/graph/graph.gexf')
+    graph.split_train_test()
