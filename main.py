@@ -11,21 +11,18 @@ class Dataset:
         self.tags = pd.read_csv(directory+'tags.csv', sep=',', encoding='utf-8')
         print('Database loaded')
 
-    def getLinks(self):
+    def get_links(self):
         return self.links
 
-    def getMovies(self):
+    def get_movies(self):
         return self.movies
 
-    def getRatings(self):
+    def get_ratings(self):
         return self.ratings
 
-    def getTags(self):
+    def get_tags(self):
         return self.tags
 
-    @staticmethod
-    def splitTrainTest():
-        pass
 
 
 class Similarity:
@@ -33,37 +30,50 @@ class Similarity:
         pass
 
 
-class Embeddings:
+class Embedding:
     def __init__(self):
         pass
 
 
-class Metrics:
+class Metric:
     def __init__(self):
         pass
 
 
 class Graph:
-    def __init__(self, dataset_directory):
-        self.dataset = Dataset(dataset_directory)
+    def __init__(self):
         self.graph = nx.Graph()
-        self.__initGraph()
 
-    def __initGraph(self):
-        print('Graph initialing...')
-        movies = self.dataset.getMovies()
-        for index, value in self.dataset.getRatings().iterrows():
-            self.graph.add_node(value['userId'], type='user')
-            movie = movies.loc[movies['movieId'] == value['movieId']].iloc[0]
-            self.graph.add_node(movie['title'], type='movie')
-            self.graph.add_edge(value['userId'], movie['title'], rating=value['rating'])
-        print('Graph created')
+    def __print_graph_info(self):
         print(f'Bipartite graph: {nx.bipartite.is_bipartite(self.graph)}')
         print(f'Total nodes: {nx.number_of_nodes(self.graph)}')
         print(f'Total edges: {nx.number_of_edges(self.graph)}')
 
-    def export(self, directory):
+    def init(self, dataset_directory):
+        self.dataset = Dataset(dataset_directory)
+        print('Graph initialing...')
+        movies = self.dataset.get_movies()
+        tags = self.dataset.get_tags()
+        for index, value in self.dataset.get_ratings().iterrows():
+            self.graph.add_node(value['userId'], type='user')
+            movie = movies.loc[movies['movieId'] == value['movieId']].iloc[0]
+            self.graph.add_node(movie['title'], type='movie', genres=movie['genres'].replace('|', ' '))
+            tag = tags.loc[(tags['userId'] == value['userId']) & (tags['movieId'] == value['movieId'])]
+            self.graph.add_edge(value['userId'], movie['title'], rating=value['rating'], tag='' if tag.empty else tag.iloc[0]['tag'])
+        print('Graph created')
+        self.__print_graph_info()
+
+    def export_gexf(self, directory):
         nx.write_gexf(self.graph, directory+'graph.gexf')
+
+    def read_gexf(self, file_path):
+        print('Graph loading...')
+        self.graph = nx.read_gexf(file_path)
+        print('Graph loaded')
+        self.__print_graph_info()
+
+    def get_graph(self):
+        return self.graph
 
 
 class Heuristic:
@@ -87,5 +97,7 @@ class Evaluation:
 
 
 if __name__ == '__main__':
-    graph = Graph(dataset_directory='data/dataset/')
-    # graph.export(directory='data/graph/')
+    graph = Graph()
+    # graph.init(dataset_directory='data/dataset/')
+    # graph.export_gexf(directory='data/graph/')
+    graph.read_gexf('data/graph/graph.gexf')
