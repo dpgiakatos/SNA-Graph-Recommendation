@@ -23,6 +23,25 @@ class Dataset:
     def getTags(self):
         return self.tags
 
+    @staticmethod
+    def splitTrainTest():
+        pass
+
+
+class Similarity:
+    def __init__(self):
+        pass
+
+
+class Embeddings:
+    def __init__(self):
+        pass
+
+
+class Metrics:
+    def __init__(self):
+        pass
+
 
 class Graph:
     def __init__(self, dataset_directory):
@@ -42,6 +61,26 @@ class Graph:
         print(f'Bipartite graph: {nx.bipartite.is_bipartite(self.graph)}')
         print(f'Total nodes: {nx.number_of_nodes(self.graph)}')
         print(f'Total edges: {nx.number_of_edges(self.graph)}')
+
+
+class Heuristic:
+    def __init__(self):
+        pass
+
+
+class Learning:
+    def __init__(self):
+        pass
+
+
+class Hybrid:
+    def __init__(self):
+        pass
+
+
+class Evaluation:
+    def __init__(self):
+        pass
 
 
 if __name__ == '__main__':
