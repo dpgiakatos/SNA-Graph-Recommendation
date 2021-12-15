@@ -109,7 +109,7 @@ Genres are a pipe-separated list, and are selected from the following:
 * Action
 * Adventure
 * Animation
-* Children's
+* Children
 * Comedy
 * Crime
 * Documentary
