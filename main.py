@@ -1,6 +1,7 @@
 import pandas as pd
 import networkx as nx
 import numpy as np
+import random
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 
@@ -95,7 +96,7 @@ class Graph:
         if bipartite:
             self.__insert_movies_nodes(movies.head(500))
         else:
-            self.__create_movies_graph(movies.head(500))
+            self.__create_movies_graph(movies.head(100))
         for index, value in dataset.get_ratings().iterrows():
             movie = movies.loc[movies['movieId'] == value['movieId']].iloc[0]
             if movie['title'] not in self.graph:
@@ -132,7 +133,9 @@ class Graph:
         train_graph = self.graph.copy()
         test = []
         test_size = nx.number_of_edges(self.graph) * split
-        for edge in self.graph.edges(data=True):
+        edges = list(self.graph.edges(data=True))
+        random.shuffle(edges)
+        for edge in edges:
             if 'similarity' in edge[2]:
                 continue
             if len(test) > test_size:
@@ -143,12 +146,53 @@ class Graph:
                 train_graph.remove_edge(*edge[:2])
                 test.append(edge)
             graph_copy.add_edge(edge[0], edge[1], **edge[2])
+        print('Splitting completed')
         return train_graph, test
 
 
 class Heuristic:
-    def __init__(self):
-        pass
+    def __init__(self, graph):
+        self.graph = graph
+        self.recommended_nodes = {}
+
+    def __sim_cal(self, degree_as, hops, value, node, user):
+        if hops == degree_as:
+            if node not in self.recommended_nodes[user]:
+                self.recommended_nodes[user][node] = value
+            else:
+                self.recommended_nodes[user][node] += value
+            return
+        edges = self.graph[node]
+        for key in edges:
+            if 'rating' in edges[key]:
+                continue
+            self.__sim_cal(degree_as, hops+1, value*edges[key]['similarity'], key, user)
+
+    def degree_association(self, degree=2):
+        print(f'Searching for potential links between nodes with degree association {degree}. This may take a while. Please wait...')
+        for node in self.graph.nodes(data=True):
+            if node[1]['type'] == 'user':
+                edges = self.graph[node[0]]
+                for key in edges:
+                    val = edges[key]['rating']/5
+                    self.recommended_nodes[node[0]] = {}
+                    self.__sim_cal(degree, 1, val, key, node[0])
+        print('Searching completed')
+
+    def get_recommended_nodes(self, top=10):
+        self.__get_top(top)
+        return self.recommended_nodes
+
+    def __get_top(self, top=10):
+        for user in self.recommended_nodes:
+            top_n = []
+            for i in range(top):
+                if len(self.recommended_nodes[user]) == 0:
+                    break
+                key = max(self.recommended_nodes[user], key=self.recommended_nodes[user].get)
+                top_n.append(key)
+                self.recommended_nodes[user].pop(key)
+            self.recommended_nodes[user] = top_n
 
 
 class Learning:
@@ -173,6 +217,19 @@ if __name__ == '__main__':
     graph.read_gexf('data/graph/graph.gexf')
     graph_train, test_edges = graph.split_train_test()
     print(len(test_edges))
+    heuristic = Heuristic(graph_train)
+    heuristic.degree_association(4)
+    rec = heuristic.get_recommended_nodes(20)
+    link = []
+    for edge in test_edges:
+        # print(edge)
+        if edge[0] in rec and edge[1] in rec[edge[0]]:
+            link.append((edge[0], edge[1], rec[edge[0]]))
+            # print(edge[0], edge[1], rec[edge[0]], len(rec[edge[0]]))
+        elif edge[1] in rec and edge[0] in rec[edge[1]]:
+            link.append((edge[1], edge[0], rec[edge[1]]))
+            # print(edge[1], edge[0], rec[edge[1]], len(rec[edge[1]]))
+    print(len(link))
     # embedding = Embedding('tf')
     # test1 = embedding.get_tf('Animation|War|Thriller')
     # print(test1)
