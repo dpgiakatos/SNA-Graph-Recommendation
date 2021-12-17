@@ -1,6 +1,7 @@
 import pandas as pd
 import networkx as nx
 import numpy as np
+import csrgraph as cg
 import random
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import SVR
@@ -268,9 +269,37 @@ class Learning:
                 self.recommended_nodes[user].pop(key)
             self.recommended_nodes[user] = top_n
 
+
 class Hybrid:
-    def __init__(self):
-        pass
+    def __init__(self, graph):
+        self.graph = graph
+
+    def random_walk(self):
+        # G = cg.csrgraph(self.graph, threads=12)
+        # node_names = G.names
+        users = []
+        walks = []
+        # for node in self.graph.nodes(data=True):
+        #     if node[1]['type'] == 'user':
+        #         users.append(node_names[node_names == node[0]].index[0])
+        # walks = np.vectorize(lambda x: node_names[x])(G.random_walks(walklen=10, epochs=100, start_nodes=users, return_weight=1., neighbor_weight=1.))
+        # print(walks)
+        for edge in self.graph.edges(data=True):
+            walk = []
+            if 'similarity' in edge[2]:
+                continue
+            if self.graph.nodes[edge[0]]['type'] == 'user':
+                user = self.graph.nodes[edge[0]]
+                movie = self.graph.nodes[edge[1]]
+            else:
+                user = self.graph.nodes[edge[1]]
+                movie = self.graph.nodes[edge[0]]
+            set
+            # while True:
+
+
+
+
 
 
 class Evaluation:
@@ -291,22 +320,27 @@ if __name__ == '__main__':
     # rec = heuristic.get_recommended_nodes(20)
 
     ##### Learning #####
-    learning = Learning(graph_train)
-    learning.svm_fit()
-    embedding = Embedding('tf')
-    test_x, test_y, movies_title = learning.get_x_y(test_edges)
-    rec = learning.svm_predict(np.array(test_x), movies_title, top=20)
+    # learning = Learning(graph_train)
+    # learning.svm_fit()
+    # embedding = Embedding('tf')
+    # test_x, test_y, movies_title = learning.get_x_y(test_edges)
+    # rec = learning.svm_predict(np.array(test_x), movies_title, top=20)
+
+    ##### Hybrid #####
+    hybrid = Hybrid(graph_train)
+    hybrid.random_walk()
+
     # print(rec)
-    link = []
-    for edge in test_edges:
-        # print(edge)
-        if edge[0] in rec and edge[1] in rec[edge[0]]:
-            link.append((edge[0], edge[1], rec[edge[0]]))
-            # print(edge[0], edge[1], rec[edge[0]], len(rec[edge[0]]))
-        elif edge[1] in rec and edge[0] in rec[edge[1]]:
-            link.append((edge[1], edge[0], rec[edge[1]]))
-            # print(edge[1], edge[0], rec[edge[1]], len(rec[edge[1]]))
-    print(len(link))
+    # link = []
+    # for edge in test_edges:
+    #     # print(edge)
+    #     if edge[0] in rec and edge[1] in rec[edge[0]]:
+    #         link.append((edge[0], edge[1], rec[edge[0]]))
+    #         # print(edge[0], edge[1], rec[edge[0]], len(rec[edge[0]]))
+    #     elif edge[1] in rec and edge[0] in rec[edge[1]]:
+    #         link.append((edge[1], edge[0], rec[edge[1]]))
+    #         # print(edge[1], edge[0], rec[edge[1]], len(rec[edge[1]]))
+    # print(len(link))
 
 
     # embedding = Embedding('tf')
