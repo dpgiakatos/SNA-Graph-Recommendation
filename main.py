@@ -326,7 +326,7 @@ class Hybrid:
                 movie = self.graph.nodes[edge[0]]
             node_1 = node_names[node_names == user['label']].index[0]
             node_2 = node_names[node_names == movie['label']].index[0]
-            walks = np.vectorize(lambda x: node_names[x])(G.random_walks(walklen=5, epochs=1, start_nodes=[node_1, node_2], return_weight=1., neighbor_weight=1.))
+            walks = np.vectorize(lambda x: node_names[x])(G.random_walks(walklen=5, epochs=1, start_nodes=[node_1, node_2], return_weight=1.5, neighbor_weight=1))
             for i in range(0, len(walks), 2):
                 random_walks.append(list(walks[i][::-1]) + list(walks[i+1]))
                 y.append(edge[2]['rating']/5)
@@ -342,8 +342,8 @@ class Hybrid:
     def svm_fit(self):
         print('Fitting SVM model. Please wait...')
         self.svr = SVR()
-        print(self.x.shape)
-        print(self.x)
+        # print(self.x.shape)
+        # print(self.x)
         self.svr.fit(self.x, self.y)
         print('SVM trained')
 
@@ -360,7 +360,7 @@ class Hybrid:
         for i in range(len(users)):
             # print(users[i], movies_title[i], predicted[i])
             user = str(float(users[i]))
-            if predicted[i] < 0.7:
+            if predicted[i] < 0.69:
                 continue
             if user not in self.recommended_nodes:
                 self.recommended_nodes[user] = {
@@ -414,7 +414,7 @@ if __name__ == '__main__':
     test_x, test_y, movies_title, users = hybrid.get_x_y(test_edges)
     rec = hybrid.svm_predict(test_x, movies_title, users, top=20)
 
-    print(rec)
+    # print(rec)
     link = []
     for edge in test_edges:
         # print(edge)
