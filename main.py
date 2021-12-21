@@ -286,33 +286,99 @@ class Learning:
 
 
 class Hybrid:
-    def __init__(self, graph):
+    def __init__(self, graph, embedding=Embedding('tf')):
         self.graph = graph
+        self.embedding = embedding
+        self.x, self.y, self.movies_title, self.users = self.__random_walk(self.graph.edges(data=True))
 
-    def random_walk(self):
-        # G = cg.csrgraph(self.graph, threads=12)
-        # node_names = G.names
+    def __get_features(self, random_walks):
+        print('Extracting features...')
+        x = []
+        for walk in random_walks:
+            features = []
+            for node in walk:
+                if self.graph.nodes[node]['type'] == 'user':
+                    user = self.graph.nodes[node]
+                    features.append(int(user['userId']))
+                else:
+                    movie = self.graph.nodes[node]
+                    features.append(movie['movieId'])
+                    for genre in self.embedding.transform(movie['genres']):
+                        features.append(genre)
+            x.append(features)
+        print('Features extracted')
+        return np.array(x)
+
+    def __random_walk(self, edges):
+        print('Random walk starting...')
+        G = cg.csrgraph(self.graph, threads=12)
+        node_names = G.names
+        random_walks = []
+        y = []
+        movies_title = []
         users = []
-        walks = []
-        # for node in self.graph.nodes(data=True):
-        #     if node[1]['type'] == 'user':
-        #         users.append(node_names[node_names == node[0]].index[0])
-        # walks = np.vectorize(lambda x: node_names[x])(G.random_walks(walklen=10, epochs=100, start_nodes=users, return_weight=1., neighbor_weight=1.))
-        # print(walks)
-        for edge in self.graph.edges(data=True):
-            walk = []
-            if 'similarity' in edge[2]:
-                continue
+        for edge in edges:
             if self.graph.nodes[edge[0]]['type'] == 'user':
                 user = self.graph.nodes[edge[0]]
                 movie = self.graph.nodes[edge[1]]
             else:
                 user = self.graph.nodes[edge[1]]
                 movie = self.graph.nodes[edge[0]]
-            set
-            # while True:
+            node_1 = node_names[node_names == user['label']].index[0]
+            node_2 = node_names[node_names == movie['label']].index[0]
+            walks = np.vectorize(lambda x: node_names[x])(G.random_walks(walklen=5, epochs=1, start_nodes=[node_1, node_2], return_weight=1., neighbor_weight=1.))
+            for i in range(0, len(walks), 2):
+                random_walks.append(list(walks[i][::-1]) + list(walks[i+1]))
+                y.append(edge[2]['rating']/5)
+                movies_title.append(movie['label'])
+                users.append(user['userId'])
+        print('Random walk completed')
+        return self.__get_features(random_walks), np.array(y), movies_title, users
 
+    def get_x_y(self, edges):
+        x, y, movies_title, users = self.__random_walk(edges)
+        return x, y, movies_title, users
 
+    def svm_fit(self):
+        print('Fitting SVM model. Please wait...')
+        self.svr = SVR()
+        print(self.x.shape)
+        print(self.x)
+        self.svr.fit(self.x, self.y)
+        print('SVM trained')
+
+    def svm_predict(self, x, movies_title, users, top=10):
+        # print(x)
+        pred = self.svr.predict(x)
+        # print(pred, len(pred))
+        self.__get_predictions(pred, x, movies_title, users)
+        self.__get_top(top)
+        return self.recommended_nodes
+
+    def __get_predictions(self, predicted, x, movies_title, users):
+        self.recommended_nodes = {}
+        for i in range(len(users)):
+            # print(users[i], movies_title[i], predicted[i])
+            user = str(float(users[i]))
+            if predicted[i] < 0.7:
+                continue
+            if user not in self.recommended_nodes:
+                self.recommended_nodes[user] = {
+                    movies_title[i]: predicted[i]
+                }
+            else:
+                self.recommended_nodes[user][movies_title[i]] = predicted[i]
+
+    def __get_top(self, top=10):
+        for user in self.recommended_nodes:
+            top_n = []
+            for i in range(top):
+                if len(self.recommended_nodes[user]) == 0:
+                    break
+                key = max(self.recommended_nodes[user], key=self.recommended_nodes[user].get)
+                top_n.append(key)
+                self.recommended_nodes[user].pop(key)
+            self.recommended_nodes[user] = top_n
 
 
 
@@ -324,10 +390,10 @@ class Evaluation:
 
 if __name__ == '__main__':
     graph = Graph()
-    # graph.init(dataset_directory='data/dataset/', keep_only_good_ratings=False, bipartite=False)
+    # graph.init(dataset_directory='data/dataset/', keep_only_good_ratings=False, bipartite=True)
     # graph.export_gexf(directory='data/graph/')
     graph.read_gexf('data/graph/graph.gexf')
-    graph_train, test_edges = graph.split_train_test()
+    graph_train, test_edges = graph.split_train_test(0.3)
     print(len(test_edges))
     ##### Heuristic #####
     # heuristic = Heuristic(graph_train)
@@ -343,19 +409,22 @@ if __name__ == '__main__':
 
     ##### Hybrid #####
     hybrid = Hybrid(graph_train)
-    hybrid.random_walk()
+    hybrid.svm_fit()
+    embedding = Embedding('tf')
+    test_x, test_y, movies_title, users = hybrid.get_x_y(test_edges)
+    rec = hybrid.svm_predict(test_x, movies_title, users, top=20)
 
-    # print(rec)
-    # link = []
-    # for edge in test_edges:
-    #     # print(edge)
-    #     if edge[0] in rec and edge[1] in rec[edge[0]]:
-    #         link.append((edge[0], edge[1], rec[edge[0]]))
-    #         # print(edge[0], edge[1], rec[edge[0]], len(rec[edge[0]]))
-    #     elif edge[1] in rec and edge[0] in rec[edge[1]]:
-    #         link.append((edge[1], edge[0], rec[edge[1]]))
-    #         # print(edge[1], edge[0], rec[edge[1]], len(rec[edge[1]]))
-    # print(len(link))
+    print(rec)
+    link = []
+    for edge in test_edges:
+        # print(edge)
+        if edge[0] in rec and edge[1] in rec[edge[0]]:
+            link.append((edge[0], edge[1], rec[edge[0]]))
+            # print(edge[0], edge[1], rec[edge[0]], len(rec[edge[0]]))
+        elif edge[1] in rec and edge[0] in rec[edge[1]]:
+            link.append((edge[1], edge[0], rec[edge[1]]))
+            # print(edge[1], edge[0], rec[edge[1]], len(rec[edge[1]]))
+    print(len(link))
 
 
     # embedding = Embedding('tf')
