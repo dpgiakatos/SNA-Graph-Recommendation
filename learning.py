@@ -4,6 +4,7 @@ from sklearn.svm import SVR
 
 
 class Learning:
+    """The class contains some learning based algorithms."""
     def __init__(self, graph, embedding=Embedding('tf')):
         self.svr = None
         self.recommended_nodes = None
@@ -12,6 +13,8 @@ class Learning:
         self.x, self.y, self.movies_title = self.get_x_y(self.graph.edges(data=True))
 
     def get_x_y(self, edges):
+        """The method extracts the features from two nodes (user-movie) that connect with a rating edge.
+        Returns the features for each graph, the corresponding ratings and movie titles."""
         x = []
         y = []
         movies_title = {}
@@ -35,11 +38,14 @@ class Learning:
         return np.array(x), np.array(y), movies_title
 
     def svm_fit(self):
+        """The method fits the SVM model with the extracted features and the corresponding ratings."""
         self.svr = SVR()
         # print(self.x)
         self.svr.fit(self.x, self.y)
 
     def svm_predict(self, x, movies_title, top=10):
+        """The method predicts the possible rating for a potential edge between a user and a movie.
+        Returns the top k (default k=10) recommendations for the users."""
         pred = self.svr.predict(x)
         # print(pred, len(pred))
         self.__get_predictions(pred, x, movies_title)
@@ -47,6 +53,8 @@ class Learning:
         return self.recommended_nodes
 
     def __get_predictions(self, predicted, x, movies_title):
+        """This method creates a dictionary that contains the user ids and for each id a list with the movie titles
+        that we will recommend to that user. We recommend a movie that will have a possible rating greater than 3.25."""
         self.recommended_nodes = {}
         for i in range(len(x)):
             # print(x[i][0], x[i][1], movies_title[x[i][1]], predicted[i])
@@ -61,6 +69,7 @@ class Learning:
                 self.recommended_nodes[user][movies_title[x[i][1]]] = predicted[i]
 
     def __get_top(self, top=10):
+        """Selects the top k (default k=10) movies with max similarity."""
         for user in self.recommended_nodes:
             top_n = []
             for i in range(top):

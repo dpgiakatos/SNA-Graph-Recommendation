@@ -5,12 +5,16 @@ from sklearn.svm import SVR
 
 
 class Hybrid:
+    """This class contains some hybrid algorithms. A hybrid algorithm is a combination with a heuristic and a learning
+    based model. With the heuristic algorithm we extract the graph structure related features and then these features
+    we use them as input in our learning based model."""
     def __init__(self, graph, embedding=Embedding('tf')):
         self.graph = graph
         self.embedding = embedding
         self.x, self.y, self.movies_title, self.users = self.__random_walk(self.graph.edges(data=True))
 
     def __get_features(self, random_walks):
+        """The method extracts the features from the walks that have been created from the random walk."""
         print('Extracting features...')
         x = []
         for walk in random_walks:
@@ -29,6 +33,7 @@ class Hybrid:
         return np.array(x)
 
     def __random_walk(self, edges):
+        """For each edge that connects a user with a movie, we generate some random walks that contains that edge."""
         print('Random walk starting...')
         G = cg.csrgraph(self.graph, threads=12)
         node_names = G.names
@@ -55,10 +60,13 @@ class Hybrid:
         return self.__get_features(random_walks), np.array(y), movies_title, users
 
     def get_x_y(self, edges):
+        """From the edge list (parameter), returns the features for each edge that has a rating,
+        the corresponding ratings, movie titles and users"""
         x, y, movies_title, users = self.__random_walk(edges)
         return x, y, movies_title, users
 
     def svm_fit(self):
+        """The method fits the SVM model with the extracted features and the corresponding ratings."""
         print('Fitting SVM model. Please wait...')
         self.svr = SVR()
         # print(self.x.shape)
@@ -67,14 +75,18 @@ class Hybrid:
         print('SVM trained')
 
     def svm_predict(self, x, movies_title, users, top=10):
+        """The method predicts the possible rating for a potential edge between a user and a movie.
+        Returns the top k (default k=10) recommendations for the users."""
         # print(x)
         pred = self.svr.predict(x)
         # print(pred, len(pred))
-        self.__get_predictions(pred, x, movies_title, users)
+        self.__get_predictions(pred, movies_title, users)
         self.__get_top(top)
         return self.recommended_nodes
 
-    def __get_predictions(self, predicted, x, movies_title, users):
+    def __get_predictions(self, predicted, movies_title, users):
+        """This method creates a dictionary that contains the user ids and for each id a list with the movie titles
+        that we will recommend to that user. We recommend a movie that will have a possible rating greater than 3.25."""
         self.recommended_nodes = {}
         for i in range(len(users)):
             # print(users[i], movies_title[i], predicted[i])
@@ -89,6 +101,7 @@ class Hybrid:
                 self.recommended_nodes[user][movies_title[i]] = predicted[i]
 
     def __get_top(self, top=10):
+        """Selects the top k (default k=10) movies with max similarity."""
         for user in self.recommended_nodes:
             top_n = []
             for i in range(top):

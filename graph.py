@@ -6,24 +6,33 @@ from dataset import Dataset
 
 
 class Graph:
+    """This class initialize the graph from the MovieLens dataset."""
     def __init__(self):
         self.graph = nx.Graph()
 
     def __print_graph_info(self):
+        """Prints some infos for the graph."""
         print(f'Bipartite graph: {nx.bipartite.is_bipartite(self.graph)}')
         print(f'Total nodes: {nx.number_of_nodes(self.graph)}')
         print(f'Total edges: {nx.number_of_edges(self.graph)}')
 
     def __clean_graph(self):
+        """Cleaning graph from isolated nodes. Then, the graph will have only one component."""
         print('Checking if graph contains isolated nodes...')
         if nx.number_connected_components(self.graph) > 1:
             pass
 
     def __insert_movies_nodes(self, movies):
+        """Inserting the movies nodes, with id the movie title, and attributes the type, genres and id.
+        This method will run only for bipartite graph."""
         for index, movie in movies.iterrows():
             self.graph.add_node(movie['title'], type='movie', genres=movie['genres'], movieId=movie['movieId'])
 
     def __create_movies_graph(self, movies, embedding):
+        """Inserting the movies nodes, with id the movie title, and attributes the type, genre and id.
+        Also, the movie nodes that have similar nodes (>0.8), they will connect with a node with attributes the
+        similarity between the movies. So, this method creates a graph between the movies. The final graph will not
+         be bipartite."""
         for index_i, movie_i in movies.iterrows():
             index_j = index_i
             self.graph.add_node(movie_i['title'], type='movie', genres=movie_i['genres'], movieId=movie_i['movieId'])
@@ -36,13 +45,19 @@ class Graph:
                 index_j += 1
 
     def init(self, dataset_directory, keep_only_good_ratings=False, bipartite=False, embedding=Embedding('tf')):
+        """Initialize the final graph (user-movie). First, the movie nodes will be created. Second, the user nodes
+        will be created with id the user id and attributes the type and user id. Then the nodes will be connected
+        with the rating that a user has put to a movie. Also, the edges that connect the users with the movies with have
+        as attributes the user's tag for the movie and the rating."""
         dataset = Dataset(dataset_directory)
         print('Graph initialing...')
         movies = dataset.get_movies()
         tags = dataset.get_tags()
         if bipartite:
+            # We keep a subsample from the dataset. The 500 first rows.
             self.__insert_movies_nodes(movies.head(500))
         else:
+            # We keep a subsample from the dataset. The 100 first rows.
             self.__create_movies_graph(movies.head(100), embedding)
         for index, value in dataset.get_ratings().iterrows():
             movie = movies.loc[movies['movieId'] == value['movieId']].iloc[0]
@@ -59,22 +74,29 @@ class Graph:
         self.__print_graph_info()
 
     def export_gexf(self, directory):
+        """Export the graph to file."""
         nx.write_gexf(self.graph, directory + 'graph.gexf')
 
     def read_gexf(self, file_path):
+        """Create the graph from file."""
         print('Graph loading...')
         self.graph = nx.read_gexf(file_path)
         print('Graph loaded')
         self.__print_graph_info()
 
     def get_graph(self):
+        """Return the graph object."""
         return self.graph
 
     def get_adjacency_matrix(self):
+        """Return the adjacency matrix."""
         adj = nx.adjacency_matrix(self.graph)
         return adj.todense()
 
     def split_train_test(self, split=0.1):
+        """Split the graph to a train, test set. The method removes the edges from the graph that have a rating
+        grater that 3.5. The method returns the graph with the removed edges and a list of the removed edges. The
+        default splitting is 10% (0.1) for the test set. This means that the 10% of the edges will be removed."""
         print('Splitting started. This may take a while. Please wait...')
         graph_copy = self.graph.copy()
         train_graph = self.graph.copy()
