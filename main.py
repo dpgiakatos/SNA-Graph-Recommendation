@@ -36,10 +36,10 @@ if __name__ == '__main__':
     rec_l = learning.svm_predict(test_x_l)
 
     ##### Hybrid #####
-    hybrid = Hybrid(graph_train)
-    hybrid.svm_fit()
+    hybrid = Hybrid(graph_train, model='knn')
+    hybrid.fit()
     test_x_h, test_y_h = hybrid.get_x_y(test_edges)
-    rec_h = hybrid.svm_predict(test_x_h)
+    rec_h = hybrid.predict(test_x_h)
 
     # print(rec)
     ratings = []
