@@ -30,25 +30,24 @@ if __name__ == '__main__':
     # print(len(link))
 
     ##### Learning #####
-    # learning = Learning(graph_train)
-    # learning.svm_fit()
-    # embedding = Embedding('tf')
-    # test_x, test_y, movies_title = learning.get_x_y(test_edges)
-    # rec = learning.svm_predict(test_x)
+    learning = Learning(graph_train)
+    learning.svm_fit()
+    test_x_l, test_y_l = learning.get_x_y(test_edges)
+    rec_l = learning.svm_predict(test_x_l)
 
     ##### Hybrid #####
     hybrid = Hybrid(graph_train)
     hybrid.svm_fit()
-    embedding = Embedding('tf')
-    test_x, test_y, movies_title, users = hybrid.get_x_y(test_edges)
-    rec = hybrid.svm_predict(test_x)
+    test_x_h, test_y_h = hybrid.get_x_y(test_edges)
+    rec_h = hybrid.svm_predict(test_x_h)
 
     # print(rec)
     ratings = []
     for edge in test_edges:
         # print(edge)
         ratings.append(edge[2]['rating']/5)
-    print(f"Mean squared error: {mean_squared_error(ratings, rec)}")
+    print(f"Mean squared error: {mean_squared_error(ratings, rec_l)}")
+    print(f"Mean squared error: {mean_squared_error(ratings, rec_h)}")
 
 
     # embedding = Embedding('tf')

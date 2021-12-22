@@ -10,7 +10,7 @@ class Learning:
         self.recommended_nodes = None
         self.graph = graph
         self.embedding = embedding
-        self.x, self.y, self.movies_title = self.get_x_y(self.graph.edges(data=True))
+        self.x, self.y = self.get_x_y(self.graph.edges(data=True))
 
     def get_x_y(self, edges):
         """The method extracts the features from two nodes (user-movie) that connect with a rating edge.
@@ -35,7 +35,7 @@ class Learning:
             # print(features)
             x.append(features)
             y.append(edge[2]['rating']/5)
-        return np.array(x), np.array(y), movies_title
+        return np.array(x), np.array(y)
 
     def svm_fit(self):
         """The method fits the SVM model with the extracted features and the corresponding ratings."""

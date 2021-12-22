@@ -2,6 +2,7 @@ import numpy as np
 import csrgraph as cg
 from embedding import Embedding
 from sklearn.svm import SVR
+from node2vec import Node2Vec
 
 
 class Hybrid:
@@ -9,12 +10,16 @@ class Hybrid:
     based model. With the heuristic algorithm we extract the graph structure related features and then these features
     we use them as input in our learning based model."""
     def __init__(self, graph, embedding=Embedding('tf')):
+        self.svr = None
+        self.node2vec = None
         self.graph = graph
         self.embedding = embedding
-        self.x, self.y, self.movies_title, self.users = self.__random_walk(self.graph.edges(data=True))
+        self.__node2vec()
+        self.x, self.y = self.get_x_y(self.graph.edges(data=True))
 
     def __get_features(self, random_walks):
-        """The method extracts the features from the walks that have been created from the random walk."""
+        """This solution may be wrong!!!
+        The method extracts the features from the walks that have been created from the random walk."""
         print('Extracting features...')
         x = []
         for walk in random_walks:
@@ -33,7 +38,8 @@ class Hybrid:
         return np.array(x)
 
     def __random_walk(self, edges):
-        """For each edge that connects a user with a movie, we generate some random walks that contains that edge."""
+        """This solution may be wrong!!!
+        For each edge that connects a user with a movie, we generate some random walks that contains that edge."""
         print('Random walk starting...')
         G = cg.csrgraph(self.graph, threads=12)
         node_names = G.names
@@ -59,11 +65,19 @@ class Hybrid:
         print('Random walk completed')
         return self.__get_features(random_walks), np.array(y), movies_title, users
 
+    def __node2vec(self):
+        """Extract node features using graph structure (node2vec)."""
+        self.node2vec = Node2Vec(self.graph, dimensions=100, walk_length=5, num_walks=100).fit(window=7, min_count=1)
+
     def get_x_y(self, edges):
         """From the edge list (parameter), returns the features for each edge that has a rating,
         the corresponding ratings, movie titles and users"""
-        x, y, movies_title, users = self.__random_walk(edges)
-        return x, y, movies_title, users
+        x = []
+        y = []
+        for edge in edges:
+            x.append(self.node2vec.wv[str(edge[0])] + self.node2vec.wv[str(edge[1])])
+            y.append(edge[2]['rating'] / 5)
+        return np.array(x), np.array(y)
 
     def svm_fit(self):
         """The method fits the SVM model with the extracted features and the corresponding ratings."""
