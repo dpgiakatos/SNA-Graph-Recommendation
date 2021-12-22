@@ -34,7 +34,7 @@ class Hybrid:
 
     def __node2vec(self):
         """Extract node features using graph structure (node2vec)."""
-        self.node2vec = Node2Vec(self.graph, dimensions=100, walk_length=5, num_walks=100).fit(window=7, min_count=1)
+        self.node2vec = Node2Vec(self.graph, dimensions=100, walk_length=5, num_walks=100).fit()
 
     def get_x_y(self, edges):
         """From the edge list (parameter), returns the features for each edge that has a rating,

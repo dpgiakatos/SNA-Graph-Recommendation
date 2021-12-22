@@ -30,10 +30,10 @@ if __name__ == '__main__':
     # print(len(link))
 
     ##### Learning #####
-    learning = Learning(graph_train)
-    learning.svm_fit()
+    learning = Learning(graph_train, model='svm-rbf')
+    learning.fit()
     test_x_l, test_y_l = learning.get_x_y(test_edges)
-    rec_l = learning.svm_predict(test_x_l)
+    rec_l = learning.predict(test_x_l)
 
     ##### Hybrid #####
     hybrid = Hybrid(graph_train, model='knn')

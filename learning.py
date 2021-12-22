@@ -5,12 +5,17 @@ from sklearn.svm import SVR
 
 class Learning:
     """The class contains some learning based algorithms."""
-    def __init__(self, graph, embedding=Embedding('tf')):
-        self.svr = None
+    def __init__(self, graph, model='svm-rbf', embedding=Embedding('tf')):
         self.recommended_nodes = None
         self.graph = graph
         self.embedding = embedding
+        self.__select_model(model)
         self.x, self.y = self.get_x_y(self.graph.edges(data=True))
+
+    def __select_model(self, model):
+        """Model initialization from the given parameter."""
+        if model == 'svm-rbf':
+            self.model = SVR(kernel='rbf')
 
     def get_x_y(self, edges):
         """The method extracts the features from two nodes (user-movie) that connect with a rating edge.
@@ -37,13 +42,12 @@ class Learning:
             y.append(edge[2]['rating']/5)
         return np.array(x), np.array(y)
 
-    def svm_fit(self):
+    def fit(self):
         """The method fits the SVM model with the extracted features and the corresponding ratings."""
-        self.svr = SVR()
         # print(self.x)
-        self.svr.fit(self.x, self.y)
+        self.model.fit(self.x, self.y)
 
-    def svm_predict(self, x):
+    def predict(self, x):
         """Returns the predicts the possible rating for a potential edge between a user and a movie."""
-        pred = self.svr.predict(x)
+        pred = self.model.predict(x)
         return pred
