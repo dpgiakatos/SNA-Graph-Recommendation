@@ -74,40 +74,7 @@ class Hybrid:
         self.svr.fit(self.x, self.y)
         print('SVM trained')
 
-    def svm_predict(self, x, movies_title, users, top=10):
-        """The method predicts the possible rating for a potential edge between a user and a movie.
-        Returns the top k (default k=10) recommendations for the users."""
-        # print(x)
+    def svm_predict(self, x):
+        """Returns the predicts the possible rating for a potential edge between a user and a movie."""
         pred = self.svr.predict(x)
-        # print(pred, len(pred))
-        self.__get_predictions(pred, movies_title, users)
-        self.__get_top(top)
-        return self.recommended_nodes
-
-    def __get_predictions(self, predicted, movies_title, users):
-        """This method creates a dictionary that contains the user ids and for each id a list with the movie titles
-        that we will recommend to that user. We recommend a movie that will have a possible rating greater than 3.25."""
-        self.recommended_nodes = {}
-        for i in range(len(users)):
-            # print(users[i], movies_title[i], predicted[i])
-            user = str(float(users[i]))
-            if predicted[i] < 0.66:
-                continue
-            if user not in self.recommended_nodes:
-                self.recommended_nodes[user] = {
-                    movies_title[i]: predicted[i]
-                }
-            else:
-                self.recommended_nodes[user][movies_title[i]] = predicted[i]
-
-    def __get_top(self, top=10):
-        """Selects the top k (default k=10) movies with max similarity."""
-        for user in self.recommended_nodes:
-            top_n = []
-            for i in range(top):
-                if len(self.recommended_nodes[user]) == 0:
-                    break
-                key = max(self.recommended_nodes[user], key=self.recommended_nodes[user].get)
-                top_n.append(key)
-                self.recommended_nodes[user].pop(key)
-            self.recommended_nodes[user] = top_n
+        return pred
