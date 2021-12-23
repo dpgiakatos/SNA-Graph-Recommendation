@@ -20,16 +20,16 @@ if __name__ == '__main__':
     rec_e = heuristic.collaborative_filtering(test_edges)
 
     ##### Learning #####
-    # learning = Learning(graph_train, model='svm-rbf')
-    # learning.fit()
-    # test_x_l, test_y_l = learning.get_x_y(test_edges)
-    # rec_l = learning.predict(test_x_l)
+    learning = Learning(graph_train, model='svm-rbf')
+    learning.fit()
+    test_x_l, test_y_l = learning.get_x_y(test_edges)
+    rec_l = learning.predict(test_x_l)
 
     ##### Hybrid #####
-    # hybrid = Hybrid(graph_train, model='knn')
-    # hybrid.fit()
-    # test_x_h, test_y_h = hybrid.get_x_y(test_edges)
-    # rec_h = hybrid.predict(test_x_h)
+    hybrid = Hybrid(graph_train, model='knn')
+    hybrid.fit()
+    test_x_h, test_y_h = hybrid.get_x_y(test_edges)
+    rec_h = hybrid.predict(test_x_h)
 
     # print(rec)
     ratings = []
@@ -37,8 +37,8 @@ if __name__ == '__main__':
         # print(edge)
         ratings.append(edge[2]['rating'])
     print(f"Mean squared error: {mean_squared_error(ratings, rec_e)}")
-    # print(f"Mean squared error: {mean_squared_error(ratings, rec_l)}")
-    # print(f"Mean squared error: {mean_squared_error(ratings, rec_h)}")
+    print(f"Mean squared error: {mean_squared_error(ratings, rec_l)}")
+    print(f"Mean squared error: {mean_squared_error(ratings, rec_h)}")
 
 
     # embedding = Embedding('tf')

@@ -42,6 +42,8 @@ class Hybrid:
         x = []
         y = []
         for edge in edges:
+            if 'similarity' in edge[2]:
+                continue
             x.append(self.node2vec.wv[str(edge[0])] + self.node2vec.wv[str(edge[1])])
             y.append(edge[2]['rating'])
         return np.array(x), np.array(y)
