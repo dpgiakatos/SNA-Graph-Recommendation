@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+from sklearn.preprocessing import Normalizer
 
 
 class Dataset:
@@ -19,8 +21,11 @@ class Dataset:
         """Return a dataframe from the file movies.csv"""
         return self.movies
 
-    def get_ratings(self):
+    def get_ratings(self, normalize=False):
         """Return a dataframe from the file ratings.csv"""
+        if normalize:
+            norm = np.linalg.norm(self.ratings['rating'].to_numpy())
+            self.ratings['rating'] = self.ratings['rating'].to_numpy()/norm
         return self.ratings
 
     def get_tags(self):

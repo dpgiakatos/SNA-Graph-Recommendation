@@ -39,7 +39,7 @@ class Learning:
                 features.append(genre)
             # print(features)
             x.append(features)
-            y.append(edge[2]['rating']/5)
+            y.append(edge[2]['rating'])
         return np.array(x), np.array(y)
 
     def fit(self):

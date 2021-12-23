@@ -58,12 +58,10 @@ class Graph:
             self.__insert_movies_nodes(movies.head(500))
         else:
             # We keep a subsample from the dataset. The 100 first rows.
-            self.__create_movies_graph(movies.head(100), embedding)
-        for index, value in dataset.get_ratings().iterrows():
+            self.__create_movies_graph(movies.head(500), embedding)
+        for index, value in dataset.get_ratings(normalize=True).iterrows():
             movie = movies.loc[movies['movieId'] == value['movieId']].iloc[0]
             if movie['title'] not in self.graph:
-                continue
-            if keep_only_good_ratings and value['rating'] < 3.5:
                 continue
             self.graph.add_node(value['userId'], type='user', userId=value['userId'])
             # self.graph.add_node(movie['title'], type='movie', genres=movie['genres'])
@@ -109,8 +107,6 @@ class Graph:
                 continue
             if len(test) > test_size:
                 break
-            if edge[2]['rating'] < 3.5:
-                continue
             graph_copy.remove_edge(*edge[:2])
             # print(nx.number_connected_components(graph_copy))
             if nx.number_connected_components(graph_copy) == 1:
