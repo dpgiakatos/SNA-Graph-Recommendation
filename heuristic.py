@@ -3,6 +3,7 @@ import numpy as np
 
 class Heuristic:
     """This class contains some heuristics algorithms for a graph recommendation system."""
+
     def __init__(self, graph):
         self.graph = graph
 
@@ -21,8 +22,8 @@ class Heuristic:
                 continue
             # print(edge, data)
             k += data['similarity']
-            sim_r += data['similarity']*edge[2]['rating']
-        return (1/k) * sim_r if k else 0
+            sim_r += data['similarity'] * edge[2]['rating']
+        return (1 / k) * sim_r if k else 0
 
     def collaborative_filtering(self, edges, mode='movies'):
         """Movie collaborative filtering algorithm"""

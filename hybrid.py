@@ -11,6 +11,7 @@ class Hybrid:
     """This class contains some hybrid algorithms. A hybrid algorithm is a combination with a heuristic and a learning
     based model. With the heuristic algorithm we extract the graph structure related features and then these features
     we use them as input in our learning based model."""
+
     def __init__(self, graph, model='svm-rbf', embedding=Embedding('tf')):
         self.node2vec = None
         self.graph = graph

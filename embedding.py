@@ -1,4 +1,5 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 
 
 class Embedding:
@@ -10,9 +11,14 @@ class Embedding:
         if method == 'tf-idf':
             self.tfidf = TfidfVectorizer()
             self.tfidf.fit(self.corpus)
+        elif method == 'cv':
+            self.cv = CountVectorizer()
+            self.cv.fit(self.corpus)
 
     def transform(self, document):
         if self.method == 'tf':
             return [1 if value in document else 0 for value in self.corpus]
         elif self.method == 'tf-idf':
             return self.tfidf.transform([document])
+        elif self.method == 'cv':
+            return self.cv.transform([document])

@@ -7,6 +7,7 @@ from dataset import Dataset
 
 class Graph:
     """This class initialize the graph from the MovieLens dataset."""
+
     def __init__(self):
         self.graph = nx.Graph()
 
@@ -38,8 +39,10 @@ class Graph:
             self.graph.add_node(movie_i['title'], type='movie', genres=movie_i['genres'], movieId=movie_i['movieId'])
             for _, movie_j in movies.iterrows():
                 if index_i != index_j:
-                    self.graph.add_node(movie_j['title'], type='movie', genres=movie_j['genres'], movieId=movie_j['movieId'])
-                    similarity = Similarity.cosine(embedding.transform(movie_i['genres']), embedding.transform(movie_j['genres']))
+                    self.graph.add_node(movie_j['title'], type='movie', genres=movie_j['genres'],
+                                        movieId=movie_j['movieId'])
+                    similarity = Similarity.cosine(embedding.transform(movie_i['genres']),
+                                                   embedding.transform(movie_j['genres']))
                     if similarity > 0.8:
                         self.graph.add_edge(movie_i['title'], movie_j['title'], similarity=similarity)
                 index_j += 1

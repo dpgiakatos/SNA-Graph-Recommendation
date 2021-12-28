@@ -5,6 +5,7 @@ from sklearn.preprocessing import Normalizer
 
 class Dataset:
     """This class initialize our  dataset. Our dataset is MovieLens."""
+
     def __init__(self, directory):
         print('Loading local database...')
         self.links = pd.read_csv(directory + 'links.csv', sep=',', encoding='utf-8')
@@ -25,7 +26,7 @@ class Dataset:
         """Return a dataframe from the file ratings.csv"""
         if normalize:
             norm = np.linalg.norm(self.ratings['rating'].to_numpy())
-            self.ratings['rating'] = self.ratings['rating'].to_numpy()/norm
+            self.ratings['rating'] = self.ratings['rating'].to_numpy() / norm
         return self.ratings
 
     def get_tags(self):
