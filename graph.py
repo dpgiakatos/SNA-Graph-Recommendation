@@ -3,11 +3,11 @@ import networkx as nx
 from embedding import Embedding
 from similarity import Similarity
 from dataset import Dataset
+from heuristic import Heuristic
 
 
 class Graph:
     """This class initialize the graph from the MovieLens dataset."""
-
     def __init__(self):
         self.graph = nx.Graph()
 
@@ -39,10 +39,8 @@ class Graph:
             self.graph.add_node(movie_i['title'], type='movie', genres=movie_i['genres'], movieId=movie_i['movieId'])
             for _, movie_j in movies.iterrows():
                 if index_i != index_j:
-                    self.graph.add_node(movie_j['title'], type='movie', genres=movie_j['genres'],
-                                        movieId=movie_j['movieId'])
-                    similarity = Similarity.cosine(embedding.transform(movie_i['genres']),
-                                                   embedding.transform(movie_j['genres']))
+                    self.graph.add_node(movie_j['title'], type='movie', genres=movie_j['genres'], movieId=movie_j['movieId'])
+                    similarity = Similarity.cosine(embedding.transform(movie_i['genres']), embedding.transform(movie_j['genres']))
                     if similarity > 0.8:
                         self.graph.add_edge(movie_i['title'], movie_j['title'], similarity=similarity)
                 index_j += 1
@@ -71,8 +69,18 @@ class Graph:
             tag = tags.loc[(tags['userId'] == value['userId']) & (tags['movieId'] == value['movieId'])]
             tag_value = '' if tag.empty else tag.iloc[0]['tag']
             self.graph.add_edge(value['userId'], movie['title'], rating=value['rating'], tag=tag_value)
+        self.connect_users(dataset.get_similarity_users())
+
         print('Graph created')
         self.__print_graph_info()
+
+    def connect_users(self, df):
+        for index, value in df.iterrows():
+            if value['User1'] in self.graph and value['User2'] in self.graph:
+                self.graph.add_edge(value['User1'], value['User2'], similarity=value['Similarity'])
+
+
+
 
     def export_gexf(self, directory):
         """Export the graph to file."""
