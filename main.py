@@ -1,10 +1,9 @@
 from graph import Graph
-from embedding import Embedding
+from evaluation import Evaluation
 from heuristic import Heuristic
 from learning import Learning
 from hybrid import Hybrid
 from sklearn.metrics import mean_squared_error, r2_score
-from dataset import Dataset
 import tensorflow as tf
 from keras.models import Sequential, Model
 from keras.layers import Dense
@@ -27,7 +26,7 @@ def get_mlps(input_1, input_2):
 
 if __name__ == '__main__':
     graph = Graph()
-    # graph.init(dataset_directory='data/dataset/', keep_only_good_ratings=False, bipartite=False)
+    # graph.init(dataset_directory='data/dataset/')
     # graph.export_gexf(directory='data/graph/')
     # exit(0)
     graph.read_gexf('data/graph/graph.gexf')
@@ -45,7 +44,7 @@ if __name__ == '__main__':
     rec_l = learning.predict(test_x_l)
 
     ##### Hybrid #####
-    hybrid = Hybrid(graph_train, model='knn')
+    hybrid = Hybrid(graph_train, model='linear', node_dimensions=128)
     hybrid.fit()
     test_x_h, test_y_h = hybrid.get_x_y(test_edges)
     rec_h = hybrid.predict(test_x_h)
@@ -57,22 +56,9 @@ if __name__ == '__main__':
     mlps.fit([learning_features, hybrid_features], learning_target, batch_size=1000, epochs=70)
     loss = mlps.evaluate([test_x_l, test_x_h], test_y_h)
 
-    ratings = []
-    for edge in test_edges:
-        ratings.append(edge[2]['rating'])
-    print(f"Mean squared error: {mean_squared_error(ratings, rec_e)} (Heuristic)")
-    print(f"Mean squared error: {mean_squared_error(ratings, rec_l)} (Learning)")
-    print(f"Mean squared error: {mean_squared_error(ratings, rec_h)} (Hybrid)")
+    ##### EVALUATION #####
+    Evaluation.model_evaluation(test_edges, rec_e)
+    Evaluation.model_evaluation(test_edges, rec_l)
+    Evaluation.model_evaluation(test_edges, rec_h)
+
     print(f"Mean squared error: {loss}")
-
-    print(f"R2 score: {r2_score(ratings, rec_e)} (Heuristic)")
-    print(f"R2 score: {r2_score(ratings, rec_l)} (Learning)")
-    print(f"R2 score: {r2_score(ratings, rec_h)} (Hybrid)")
-
-    # embedding = Embedding('tf')
-    # test1 = embedding.transform('Animation|War|Thriller')
-    # print(test1)
-    # test2 = embedding.transform('War|Thriller')
-    # print(test2)
-    # sim = Similarity.cosine(test1, test2)
-    # print(sim)

@@ -3,9 +3,11 @@ from sklearn import metrics
 
 class Evaluation:
 
+    @staticmethod
     def model_evaluation(y_test, y_predicted):
-        print("Correlation: %2f, p-value: %2f" % stats.pearsonr(y_test, y_predicted))
-        print("Mean Squared Error: %2f" % metrics.mean_squared_error(y_test, y_predicted))
-        RMSE = metrics.mean_squared_error(y_test, y_predicted, squared=False)
-        print("Root Mean Squared Error: %2f" % RMSE)
-        print("R-Squared: %2f" % metrics.r2_score(y_test, y_predicted))
+        ratings = []
+        for edge in y_test:
+            ratings.append(edge[2]['rating'])
+        print(f"Mean Squared Error: {metrics.mean_squared_error(ratings, y_predicted)}")
+        print(f"Root Mean Squared Error: {metrics.mean_squared_error(ratings, y_predicted, squared=False)}")
+        print(f"R-Squared: {metrics.r2_score(ratings, y_predicted)}")

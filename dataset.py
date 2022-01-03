@@ -65,7 +65,7 @@ class Dataset:
                 listusers.append([df2['userId'][i], df2['userId'][j], round(c.flat[0], 3)])
         df = pd.DataFrame(listusers, columns=['User1', 'User2', 'Similarity'])
         df = df[df['User1'] != df['User2']]
-        df2 = df[df['Similarity'] > 0.7]
+        df2 = df[df['Similarity'] > 0.8]
         self.similarityusers = df2
 
     def get_similarity_users(self):
