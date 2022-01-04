@@ -30,12 +30,12 @@ if __name__ == '__main__':
     # graph.export_gexf(directory='data/graph/')
     # exit(0)
     graph.read_gexf('data/graph/graph.gexf')
-    graph_train, test_edges = graph.split_train_test(0.1)
+    graph_train, test_edges = graph.split_train_test(0.2)
     print(len(test_edges))
 
     ##### Heuristic #####
     heuristic = Heuristic(graph_train)
-    rec_e = heuristic.collaborative_filtering(test_edges)
+    rec_e = heuristic.collaborative_filtering(test_edges, mode='movies')
 
     ##### Learning #####
     learning = Learning(graph_train, model='linear')

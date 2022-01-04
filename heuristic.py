@@ -51,7 +51,7 @@ class Heuristic:
 
 
 
-    def collaborative_filtering(self, edges, mode):
+    def collaborative_filtering(self, edges, mode='movies'):
         """Movie collaborative filtering algorithm"""
         r = []
         for edge in edges:
