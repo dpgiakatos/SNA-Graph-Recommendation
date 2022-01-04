@@ -19,10 +19,10 @@ class Heuristic:
             else:
                 continue
             data = self.graph.get_edge_data(movie['label'], item['label'])
-            print(data)
+            # print(data)
             if data is None:
                 continue
-            print(edge, data)
+            # print(edge, data)
             k += data['similarity']
             sim_r += data['similarity'] * edge[2]['rating']
         return (1 / k) * sim_r if k else 0
@@ -40,10 +40,10 @@ class Heuristic:
             else:
                 continue
             data = self.graph.get_edge_data(user_1['label'], user['label'])
-            print(data)
+            # print(data)
             if data is None:
                 continue
-            print(edge, data)
+            # print(edge, data)
             k += data['similarity']
             sim_r += data['similarity'] * edge[2]['rating']
         return (1 / k) * sim_r if k else 0

@@ -63,7 +63,7 @@ class Learning:
                         self.clustering[movie['label']], self.degree_centrality[movie['label']],
                         self.closeness_centrality[movie['label']], self.betweenness_centrality[movie['label']]]
             for genre in self.embedding.transform(movie['genres']):
-                print(genre)
+                # print(genre)
                 features.append(float(genre))
             # print(features)
             x.append(features)  # [useId, movieId, genre1, genre2, ...]

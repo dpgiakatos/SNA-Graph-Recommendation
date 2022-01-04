@@ -29,7 +29,7 @@ if __name__ == '__main__':
     # graph.init(dataset_directory='data/dataset/')
     # graph.export_gexf(directory='data/graph/')
     # exit(0)
-    graph.read_gexf('data/graph/graph.gexf')
+    graph.read_gexf('data/graph/graph0_6.gexf')
     graph_train, test_edges = graph.split_train_test(0.2)
     print(len(test_edges))
 
@@ -54,11 +54,13 @@ if __name__ == '__main__':
     hybrid_features, hybrid_target = hybrid.get_x_y(graph_train.edges(data=True))
     mlps = get_mlps(learning_features, hybrid_features)
     mlps.fit([learning_features, hybrid_features], learning_target, batch_size=1000, epochs=70)
-    loss = mlps.evaluate([test_x_l, test_x_h], test_y_h)
+    rec_m = mlps.predict([test_x_l, test_x_h])
+    # loss = mlps.evaluate([test_x_l, test_x_h], test_y_h)
 
     ##### EVALUATION #####
     Evaluation.model_evaluation(test_edges, rec_e)
     Evaluation.model_evaluation(test_edges, rec_l)
     Evaluation.model_evaluation(test_edges, rec_h)
+    Evaluation.model_evaluation(test_edges, rec_m)
 
-    print(f"Mean squared error: {loss}")
+    # print(f"Mean squared error: {loss}")
